@@ -54,10 +54,10 @@ Documentation = "https://privacybox.dev"
 Issues = "https://github.com/privacybox/privacybox/issues"
 
 [project.scripts]
-privacybox = "privacybox.cli.app:main"
+privacybox = "privacybox.cli.app:app"
 
-[tool.hatch.build]
-include = ["src/privacybox/**/*.py", "src/privacybox/**/*.yaml"]
+[tool.hatch.build.targets.wheel]
+packages = ["privacybox"]
 
 [tool.hatch.envs.default]
 features = ["all"]
