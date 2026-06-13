@@ -1,0 +1,81 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "privacybox"
+version = "0.1.0"
+description = "自然语言驱动的自部署引擎 — 一句话部署任意服务，隐私默认可调"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [
+  { name = "PrivacyBox Team" },
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Intended Audience :: End Users/Desktop",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: System :: Installation/Setup",
+  "Topic :: System :: Software Distribution",
+]
+keywords = ["docker", "self-hosted", "privacy", "ai", "devops"]
+
+dependencies = [
+  "typer>=0.15",
+  "rich>=13.0",
+  "questionary>=2.0",
+  "pydantic>=2.0",
+  "pyyaml>=6.0",
+  "jinja2>=3.0",
+  "halo>=0.0.31",
+  "platformdirs>=4.0",
+  "cryptography>=41.0",
+  "docker>=7.0",
+  "httpx>=0.27",
+  "pydantic-settings>=2.0",
+]
+
+[project.optional-dependencies]
+openai = ["openai>=1.0"]
+claude = ["anthropic>=0.30"]
+ollama = ["ollama>=0.1"]
+k8s = ["kubernetes>=27.0"]
+all = ["privacybox[openai,claude,ollama,k8s]"]
+
+[project.urls]
+Homepage = "https://github.com/privacybox/privacybox"
+Documentation = "https://privacybox.dev"
+Issues = "https://github.com/privacybox/privacybox/issues"
+
+[project.scripts]
+privacybox = "privacybox.cli.app:main"
+
+[tool.hatch.build]
+include = ["src/privacybox/**/*.py", "src/privacybox/**/*.yaml"]
+
+[tool.hatch.envs.default]
+features = ["all"]
+
+[tool.hatch.envs.test]
+features = ["all"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-width = 2
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]

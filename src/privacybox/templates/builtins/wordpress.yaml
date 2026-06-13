@@ -1,0 +1,73 @@
+name: wordpress
+version: "1.0"
+description: "博客与内容管理系统 — 建站首选"
+categories: [web, cms]
+author: PrivacyBox Team
+
+params:
+  - name: name
+    type: string
+    label: "服务名称"
+    default: "wordpress"
+    required: true
+    advanced: false
+
+  - name: port
+    type: number
+    label: "Web 端口"
+    default: 8080
+    min: 1024
+    max: 65535
+    required: true
+    advanced: false
+
+  - name: db_password
+    type: password
+    label: "数据库密码"
+    auto_generate: true
+    advanced: false
+
+  - name: site_title
+    type: string
+    label: "站点标题"
+    default: "My Blog"
+    advanced: false
+
+compose:
+  version: "3.8"
+  services:
+    wordpress:
+      image: wordpress:latest
+      container_name: "{{ name }}_app"
+      ports:
+        - "{{ privacy_ip }}:{{ port }}:80"
+      environment:
+        WORDPRESS_DB_HOST: db
+        WORDPRESS_DB_USER: wordpress
+        WORDPRESS_DB_PASSWORD: "{{ db_password }}"
+        WORDPRESS_DB_NAME: wordpress
+        WORDPRESS_TABLE_PREFIX: wp_
+        WORDPRESS_DEBUG: "0"
+      volumes:
+        - ./data/{{ name }}/wp-content:/var/www/html/wp-content
+      restart: unless-stopped
+      labels:
+        - "privacybox.managed=true"
+        - "privacybox.name={{ name }}"
+
+    db:
+      image: mysql:8.0
+      container_name: "{{ name }}_db"
+      environment:
+        MYSQL_DATABASE: wordpress
+        MYSQL_USER: wordpress
+        MYSQL_PASSWORD: "{{ db_password }}"
+        MYSQL_RANDOM_ROOT_PASSWORD: "1"
+      volumes:
+        - ./data/{{ name }}/db:/var/lib/mysql
+      restart: unless-stopped
+      labels:
+        - "privacybox.managed=true"
+        - "privacybox.name={{ name }}"
+
+volumes: {}

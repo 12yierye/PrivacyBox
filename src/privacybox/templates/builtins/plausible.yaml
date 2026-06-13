@@ -1,0 +1,98 @@
+name: plausible
+version: "1.0"
+description: "网站分析 — 隐私友好的 Google Analytics 替代"
+categories: [analytics, web]
+author: PrivacyBox Team
+
+params:
+  - name: name
+    type: string
+    label: "服务名称"
+    default: "plausible"
+    required: true
+    advanced: false
+
+  - name: port
+    type: number
+    label: "Web 端口"
+    default: 8000
+    min: 1024
+    max: 65535
+    required: true
+    advanced: false
+
+  - name: secret_key
+    type: password
+    label: "密钥"
+    hint: "留空则自动生成"
+    auto_generate: true
+    advanced: false
+
+  - name: admin_email
+    type: string
+    label: "管理员邮箱"
+    default: "admin@example.com"
+    advanced: false
+
+  - name: admin_password
+    type: password
+    label: "管理员密码"
+    auto_generate: true
+    advanced: false
+
+compose:
+  version: "3.8"
+  services:
+    plausible:
+      image: plausible/analytics:latest
+      container_name: "{{ name }}_app"
+      ports:
+        - "{{ privacy_ip }}:{{ port }}:8000"
+      environment:
+        BASE_URL: "http://localhost:{{ port }}"
+        SECRET_KEY_BASE: "{{ secret_key }}"
+        DATABASE_URL: "postgres://plausible:{{ secret_key }}@db:5432/plausible"
+        CLICKHOUSE_DATABASE_URL: "http://clickhouse:8123/plausible"
+        ADMIN_USER_EMAIL: "{{ admin_email }}"
+        ADMIN_USER_NAME: admin
+        ADMIN_USER_PWD: "{{ admin_password }}"
+        DISABLE_REGISTRATION: "true"
+      volumes:
+        - ./data/{{ name }}/data:/var/lib/plausible/data
+      depends_on:
+        - db
+        - clickhouse
+      restart: unless-stopped
+      labels:
+        - "privacybox.managed=true"
+        - "privacybox.name={{ name }}"
+
+    db:
+      image: postgres:16-alpine
+      container_name: "{{ name }}_db"
+      environment:
+        POSTGRES_DB: plausible
+        POSTGRES_USER: plausible
+        POSTGRES_PASSWORD: "{{ secret_key }}"
+      volumes:
+        - ./data/{{ name }}/db:/var/lib/postgresql/data
+      restart: unless-stopped
+      labels:
+        - "privacybox.managed=true"
+        - "privacybox.name={{ name }}"
+
+    clickhouse:
+      image: clickhouse/clickhouse-server:latest
+      container_name: "{{ name }}_clickhouse"
+      environment:
+        CLICKHOUSE_DB: plausible
+        CLICKHOUSE_USER: plausible
+        CLICKHOUSE_PASSWORD: "{{ secret_key }}"
+      volumes:
+        - ./data/{{ name }}/clickhouse:/var/lib/clickhouse
+      restart: unless-stopped
+      labels:
+        - "privacybox.managed=true"
+        - "privacybox.name={{ name }}"
+
+volumes: {}

@@ -1,0 +1,49 @@
+name: jellyfin
+version: "1.0"
+description: "媒体服务器 — 管理和流式传输影视音乐"
+categories: [media, entertainment]
+author: PrivacyBox Team
+
+params:
+  - name: name
+    type: string
+    label: "服务名称"
+    default: "jellyfin"
+    required: true
+    advanced: false
+
+  - name: port
+    type: number
+    label: "Web 端口"
+    default: 8096
+    min: 1024
+    max: 65535
+    required: true
+    advanced: false
+
+  - name: media_path
+    type: string
+    label: "媒体文件夹路径"
+    hint: "存放电影/电视剧/音乐的文件夹"
+    default: "./media"
+    required: true
+    advanced: false
+
+compose:
+  version: "3.8"
+  services:
+    jellyfin:
+      image: jellyfin/jellyfin:latest
+      container_name: "{{ name }}_app"
+      ports:
+        - "{{ privacy_ip }}:{{ port }}:8096"
+      volumes:
+        - ./data/{{ name }}/config:/config
+        - ./data/{{ name }}/cache:/cache
+        - "{{ media_path }}:/media:ro"
+      restart: unless-stopped
+      labels:
+        - "privacybox.managed=true"
+        - "privacybox.name={{ name }}"
+
+volumes: {}
