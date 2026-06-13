@@ -5,38 +5,52 @@ from pathlib import Path
 from typing import Optional
 
 import yaml
-from platformdirs import user_config_dir, user_data_dir, user_state_dir
 
 from privacybox.config.schema import PrivacyBoxConfig
-from privacybox.utils.platform import detect_platform
 from privacybox.utils.platform import get_docker_socket, get_podman_socket
 
 
 APP_NAME = "privacybox"
 
 
-def get_config_dir() -> Path:
-    return Path(user_config_dir(APP_NAME, ensure_exists=True))
+def _get_home() -> Path:
+    """Return the PrivacyBox home directory, always under the project root."""
+    env_home = os.environ.get("PRIVACYBOX_HOME")
+    if env_home:
+        return Path(env_home)
+    return Path.cwd() / ".privacybox"
+
+
+def _ensure_home() -> Path:
+    p = _get_home()
+    p.mkdir(parents=True, exist_ok=True)
+    return p
 
 
 def get_data_dir() -> Path:
-    return Path(user_data_dir(APP_NAME, ensure_exists=True))
-
-
-def get_state_dir() -> Path:
-    return Path(user_state_dir(APP_NAME, ensure_exists=True))
-
-
-def get_default_config_path() -> Path:
-    return get_config_dir() / "config.yaml"
+    d = _get_home() / "data"
+    d.mkdir(parents=True, exist_ok=True)
+    return d
 
 
 def get_db_path() -> Path:
-    return get_state_dir() / "privacybox.db"
+    return _ensure_home() / "privacybox.db"
 
 
 def get_credentials_dir() -> Path:
-    return get_config_dir() / "credentials"
+    d = _ensure_home() / "credentials"
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
+
+def get_default_config_path() -> Path:
+    return _ensure_home() / "config.yaml"
+
+
+def get_state_dir() -> Path:
+    d = _ensure_home() / "state"
+    d.mkdir(parents=True, exist_ok=True)
+    return d
 
 
 def _build_default_config() -> PrivacyBoxConfig:

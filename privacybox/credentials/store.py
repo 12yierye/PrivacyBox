@@ -11,7 +11,7 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 import base64
 
-from privacybox.config.loader import get_credentials_dir, get_config_dir
+from privacybox.config.loader import get_credentials_dir, _get_home
 from privacybox.config.schema import PrivacyBoxConfig
 from privacybox.credentials.backends.base import CredentialBackend
 from privacybox.state.database import Database
@@ -30,7 +30,7 @@ class FileCredentialBackend(CredentialBackend):
         return "file"
 
     def _get_or_create_key(self) -> bytes:
-        key_file = get_config_dir() / ".cred_key"
+        key_file = _get_home() / ".cred_key"
         if key_file.exists():
             return key_file.read_bytes()
         key = Fernet.generate_key()
