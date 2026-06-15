@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import os
+import sys
 from pathlib import Path
 from typing import Optional
 
 import yaml
 
 from privacybox.config.schema import PrivacyBoxConfig
+from privacybox.install_config import get_data_dir as _installed_data_dir
 from privacybox.utils.platform import get_docker_socket, get_podman_socket
 
 
@@ -14,10 +16,26 @@ APP_NAME = "privacybox"
 
 
 def _get_home() -> Path:
-    """Return the PrivacyBox home directory, always under the project root."""
+    """Return the PrivacyBox home directory.
+
+    Resolution order:
+      1. PRIVACYBOX_HOME env var
+      2. Install-time config (set by installer)
+      3. .privacybox/ next to the executable (PyInstaller bundle)
+      4. .privacybox/ in cwd
+    """
     env_home = os.environ.get("PRIVACYBOX_HOME")
     if env_home:
         return Path(env_home)
+
+    installed = _installed_data_dir()
+    if installed:
+        return Path(installed)
+
+    if getattr(sys, "frozen", False):
+        bundle_dir = Path(sys.executable).parent / ".privacybox"
+        return bundle_dir
+
     return Path.cwd() / ".privacybox"
 
 
